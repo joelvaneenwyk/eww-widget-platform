@@ -1,21 +1,24 @@
 name: Build and deploy Github pages
 on:
     push:
-        branches:
-            - master
+        branches: [develop]
         paths:
             - "docs/**"
             - "gen-docs.ts"
             - "crates/eww/src/widgets/widget_definitions.rs"
             - "crates/eww/src/config/inbuilt.rs"
             - ".github/workflows/**"
+
 jobs:
     build:
         name: Build mdBook
         runs-on: ubuntu-latest
         steps:
             # Checkout
-            - uses: actions/checkout@master
+            - uses: actions/checkout@v4
+              with:
+                submodules: recursive
+                fetch-depth: 0
 
             # Build widget documentation
             - name: Use deno to build widget documentation
