@@ -17,6 +17,7 @@ All notable changes to eww will be listed here, starting at changes since versio
 ### Fixes
 
 - Fix and refactor nix flake (By: w-lfchen)
+- Fix remove items from systray (By: vnva)
 
 ### Features
 
