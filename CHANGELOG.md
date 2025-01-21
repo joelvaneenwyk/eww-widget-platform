@@ -4,13 +4,34 @@ All notable changes to eww will be listed here, starting at changes since versio
 
 ## Unreleased
 
+### BREAKING CHANGES
+- [#1176](https://github.com/elkowar/eww/pull/1176) changed safe access (`?.`) behavior:
+  Attempting to index in an empty JSON string (`'""'`) is now an error.
+
 ### Fixes
+- Re-enable some scss features (By: w-lfchen)
 - Fix and refactor nix flake (By: w-lfchen)
 - Fix remove items from systray (By: vnva)
+- Fix the gtk `stack` widget (By: ovalkonia)
+- Fix values in the `EWW_NET` variable (By: mario-kr)
+- Fix the gtk `expander` widget (By: ovalkonia)
+- Fix wayland monitor names support (By: dragonnn)
+- `get_locale` now follows POSIX standard for locale selection (By: mirhahn, w-lfchen)
 
 ### Features
+- Add OnDemand support for focusable on wayland (By: GallowsDove)
+- Add jq `raw-output` support (By: RomanHargrave)
+- Update rust toolchain to 1.81.0 (By: w-lfchen)
+- Add `:fill-svg` and `:preserve-aspect-ratio` properties to images (By: hypernova7, w-lfchen)
 - Add `:truncate` property to labels, disabled by default (except in cases where truncation would be enabled in version `0.5.0` and before) (By: Rayzeq).
 - Add support for `:hover` css selectors for tray items (By: zeapoz)
+- Add scss support for the `:style` widget property (By: ovalkonia)
+- Add `min` and `max` function calls to simplexpr (By: ovalkonia)
+- Add `flip-x`, `flip-y`, `vertical` options to the graph widget to determine its direction
+- Add `transform-origin-x`/`transform-origin-y` properties to transform widget (By: mario-kr)
+- Add keyboard support for button presses (By: julianschuler)
+- Support empty string for safe access operator (By: ModProg)
+- Add `log` function calls to simplexpr (By: topongo)
 
 ## [0.6.0] (21.04.2024)
 
@@ -42,6 +63,7 @@ All notable changes to eww will be listed here, starting at changes since versio
 - Made `and`, `or` and `?:` lazily evaluated in simplexpr (By: ModProg)
 - Add Vanilla CSS support (By: Ezequiel Ramis)
 - Add `jq` function, offering jq-style json processing
+- Add support for the `EWW_BATTERY` magic variable in FreeBSD, OpenBSD, and NetBSD (By: dangerdyke)
 - Add `justify` property to the label widget, allowing text justification (By: n3oney)
 - Add `EWW_TIME` magic variable (By: Erenoit)
 - Add trigonometric functions (`sin`, `cos`, `tan`, `cot`) and degree/radian conversions (`degtorad`, `radtodeg`) (By: end-4)

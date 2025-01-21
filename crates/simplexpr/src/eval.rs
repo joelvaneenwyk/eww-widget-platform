@@ -7,7 +7,7 @@ use crate::{
     ast::{AccessType, BinOp, SimplExpr, UnaryOp},
     dynval::{ConversionError, DynVal},
 };
-use eww_shared_util::{Span, Spanned, VarName};
+use eww_shared_util::{get_locale, Span, Spanned, VarName};
 use std::{
     collections::HashMap,
     convert::{Infallible, TryFrom, TryInto},
@@ -268,6 +268,10 @@ impl SimplExpr {
 
                 let is_safe = *safe == AccessType::Safe;
 
+                // Needs to be done first as `as_json_value` fails on empty string
+                if is_safe && val.as_string()?.is_empty() {
+                    return Ok(DynVal::from(&serde_json::Value::Null).at(*span));
+                }
                 match val.as_json_value()? {
                     serde_json::Value::Array(val) => {
                         let index = index.as_i32()?;
@@ -280,9 +284,6 @@ impl SimplExpr {
                             .or_else(|| val.get(&index.as_i32().ok()?.to_string()))
                             .unwrap_or(&serde_json::Value::Null);
                         Ok(DynVal::from(indexed_value).at(*span))
-                    }
-                    serde_json::Value::String(val) if val.is_empty() && is_safe => {
-                        Ok(DynVal::from(&serde_json::Value::Null).at(*span))
                     }
                     serde_json::Value::Null if is_safe => Ok(DynVal::from(&serde_json::Value::Null).at(*span)),
                     _ => Err(EvalError::CannotIndex(format!("{}", val)).at(*span)),
@@ -325,6 +326,38 @@ fn call_expr_function(name: &str, args: Vec<DynVal>) -> Result<DynVal, EvalError
                 let num = num.as_f64()?;
                 let digits = digits.as_i32()?;
                 Ok(DynVal::from(format!("{:.1$}", num, digits as usize)))
+            }
+            _ => Err(EvalError::WrongArgCount(name.to_string())),
+        },
+        "min" => match args.as_slice() {
+            [a, b] => {
+                let a = a.as_f64()?;
+                let b = b.as_f64()?;
+                Ok(DynVal::from(f64::min(a, b)))
+            }
+            _ => Err(EvalError::WrongArgCount(name.to_string())),
+        },
+        "max" => match args.as_slice() {
+            [a, b] => {
+                let a = a.as_f64()?;
+                let b = b.as_f64()?;
+                Ok(DynVal::from(f64::max(a, b)))
+            }
+            _ => Err(EvalError::WrongArgCount(name.to_string())),
+        },
+        "powi" => match args.as_slice() {
+            [num, n] => {
+                let num = num.as_f64()?;
+                let n = n.as_i32()?;
+                Ok(DynVal::from(f64::powi(num, n)))
+            }
+            _ => Err(EvalError::WrongArgCount(name.to_string())),
+        },
+        "powf" => match args.as_slice() {
+            [num, n] => {
+                let num = num.as_f64()?;
+                let n = n.as_f64()?;
+                Ok(DynVal::from(f64::powf(num, n)))
             }
             _ => Err(EvalError::WrongArgCount(name.to_string())),
         },
@@ -439,7 +472,9 @@ fn call_expr_function(name: &str, args: Vec<DynVal>) -> Result<DynVal, EvalError
             _ => Err(EvalError::WrongArgCount(name.to_string())),
         },
         "jq" => match args.as_slice() {
-            [json, code] => run_jaq_function(json.as_json_value()?, code.as_string()?)
+            [json, code] => run_jaq_function(json.as_json_value()?, code.as_string()?, "")
+                .map_err(|e| EvalError::Spanned(code.span(), Box::new(e))),
+            [json, code, args] => run_jaq_function(json.as_json_value()?, code.as_string()?, &args.as_string()?)
                 .map_err(|e| EvalError::Spanned(code.span(), Box::new(e))),
             _ => Err(EvalError::WrongArgCount(name.to_string())),
         },
@@ -451,14 +486,26 @@ fn call_expr_function(name: &str, args: Vec<DynVal>) -> Result<DynVal, EvalError
                 };
 
                 Ok(DynVal::from(match timezone.timestamp_opt(timestamp.as_i64()?, 0) {
-                    LocalResult::Single(t) | LocalResult::Ambiguous(t, _) => t.format(&format.as_string()?).to_string(),
+                    LocalResult::Single(t) | LocalResult::Ambiguous(t, _) => {
+                        t.format_localized(&format.as_string()?, get_locale()).to_string()
+                    }
                     LocalResult::None => return Err(EvalError::ChronoError("Invalid UNIX timestamp".to_string())),
                 }))
             }
             [timestamp, format] => Ok(DynVal::from(match Local.timestamp_opt(timestamp.as_i64()?, 0) {
-                LocalResult::Single(t) | LocalResult::Ambiguous(t, _) => t.format(&format.as_string()?).to_string(),
+                LocalResult::Single(t) | LocalResult::Ambiguous(t, _) => {
+                    t.format_localized(&format.as_string()?, get_locale()).to_string()
+                }
                 LocalResult::None => return Err(EvalError::ChronoError("Invalid UNIX timestamp".to_string())),
             })),
+            _ => Err(EvalError::WrongArgCount(name.to_string())),
+        },
+        "log" => match args.as_slice() {
+            [num, n] => {
+                let num = num.as_f64()?;
+                let n = n.as_f64()?;
+                Ok(DynVal::from(f64::log(num, n)))
+            }
             _ => Err(EvalError::WrongArgCount(name.to_string())),
         },
 
@@ -485,16 +532,20 @@ fn prepare_jaq_filter(code: String) -> Result<Arc<jaq_interpret::Filter>, EvalEr
     Ok(Arc::new(filter))
 }
 
-fn run_jaq_function(json: serde_json::Value, code: String) -> Result<DynVal, EvalError> {
-    let filter: Arc<jaq_interpret::Filter> = prepare_jaq_filter(code)?;
-    let inputs = jaq_interpret::RcIter::new(std::iter::empty());
-    let out = filter
-        .run((jaq_interpret::Ctx::new([], &inputs), jaq_interpret::Val::from(json)))
-        .map(|x| x.map(Into::<serde_json::Value>::into))
-        .map(|x| x.map(|x| DynVal::from_string(serde_json::to_string(&x).unwrap())))
+fn run_jaq_function(json: serde_json::Value, code: String, args: &str) -> Result<DynVal, EvalError> {
+    use jaq_interpret::{Ctx, RcIter, Val};
+    prepare_jaq_filter(code)?
+        .run((Ctx::new([], &RcIter::new(std::iter::empty())), Val::from(json)))
+        .map(|r| r.map(Into::<serde_json::Value>::into))
+        .map(|x| {
+            x.map(|val| match (args, val) {
+                ("r", serde_json::Value::String(s)) => DynVal::from_string(s),
+                // invalid arguments are silently ignored
+                (_, v) => DynVal::from_string(serde_json::to_string(&v).unwrap()),
+            })
+        })
         .collect::<Result<_, _>>()
-        .map_err(|e| EvalError::JaqError(e.to_string()))?;
-    Ok(out)
+        .map_err(|e| EvalError::JaqError(e.to_string()))
 }
 
 #[cfg(test)]
@@ -544,6 +595,8 @@ mod tests {
         string_to_string(r#""Hello""#) => Ok(DynVal::from("Hello".to_string())),
         safe_access_to_existing(r#"{ "a": { "b": 2 } }.a?.b"#) => Ok(DynVal::from(2)),
         safe_access_to_missing(r#"{ "a": { "b": 2 } }.b?.b"#) => Ok(DynVal::from(&serde_json::Value::Null)),
+        safe_access_to_empty(r#"""?.test"#) => Ok(DynVal::from(&serde_json::Value::Null)),
+        safe_access_to_empty_json_string(r#"'""'?.test"#) => Err(super::EvalError::CannotIndex("\"\"".to_string())),
         safe_access_index_to_existing(r#"[1, 2]?.[1]"#) => Ok(DynVal::from(2)),
         safe_access_index_to_missing(r#""null"?.[1]"#) => Ok(DynVal::from(&serde_json::Value::Null)),
         safe_access_index_to_non_indexable(r#"32?.[1]"#) => Err(super::EvalError::CannotIndex("32".to_string())),
@@ -553,5 +606,9 @@ mod tests {
         lazy_evaluation_or(r#"true || "null".test"#) => Ok(DynVal::from(true)),
         lazy_evaluation_elvis(r#""test"?: "null".test"#) => Ok(DynVal::from("test")),
         jq_basic_index(r#"jq("[7,8,9]", ".[0]")"#) => Ok(DynVal::from(7)),
+        jq_raw_arg(r#"jq("[ \"foo\" ]", ".[0]", "r")"#) => Ok(DynVal::from("foo")),
+        jq_empty_arg(r#"jq("[ \"foo\" ]", ".[0]", "")"#) => Ok(DynVal::from(r#""foo""#)),
+        jq_invalid_arg(r#"jq("[ \"foo\" ]", ".[0]", "hello")"#) => Ok(DynVal::from(r#""foo""#)),
+        jq_no_arg(r#"jq("[ \"foo\" ]", ".[0]")"#) => Ok(DynVal::from(r#""foo""#)),
     }
 }
