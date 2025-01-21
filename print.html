@@ -275,7 +275,7 @@ These files must be placed under <code>$XDG_CONFIG_HOME/eww</code> (this is most
 <li>the string <code>&lt;primary&gt;</code>, in which case eww tries to identify the primary display (which may fail, especially on wayland)</li>
 <li>an integer, declaring the monitor index</li>
 <li>the name of the monitor</li>
-<li>a string containing a JSON-array of monitor matchers, such as: <code>'[&quot;&lt;primary&gt;&quot; &quot;HDMI-A-1&quot; &quot;PHL 345B1C&quot; 0]'</code>. Eww will try to find a match in order, allowing you to specify fallbacks.</li>
+<li>a string containing a JSON-array of monitor matchers, such as: <code>'[&quot;&lt;primary&gt;&quot;, &quot;HDMI-A-1&quot;, &quot;PHL 345B1C&quot;, 0]'</code>. Eww will try to find a match in order, allowing you to specify fallbacks.</li>
 </ul>
 <p><strong><code>geometry</code>-properties</strong></p>
 <table><thead><tr><th align="right">Property</th><th>Description</th></tr></thead><tbody>
@@ -296,7 +296,7 @@ Depending on if you are using X11 or Wayland, some additional properties exist:
 <table><thead><tr><th align="right">Property</th><th>Description</th></tr></thead><tbody>
 <tr><td align="right"><code>stacking</code></td><td>Where the window should appear in the stack. Possible values: <code>fg</code>, <code>bg</code>, <code>overlay</code>, <code>bottom</code>.</td></tr>
 <tr><td align="right"><code>exclusive</code></td><td>Whether the compositor should reserve space for the window automatically. Either <code>true</code> or <code>false</code>.</td></tr>
-<tr><td align="right"><code>focusable</code></td><td>Whether the window should be able to be focused. This is necessary for any widgets that use the keyboard to work. Either <code>true</code> or <code>false</code>.</td></tr>
+<tr><td align="right"><code>focusable</code></td><td>Whether the window should be able to be focused. This is necessary for any widgets that use the keyboard to work. Possible values: <code>none</code>, <code>exclusive</code> and <code>ondemand</code>.</td></tr>
 <tr><td align="right"><code>namespace</code></td><td>Set the wayland layersurface namespace eww uses. Accepts a <code>string</code> value.</td></tr>
 </tbody></table>
 <h2 id="your-first-widget"><a class="header" href="#your-first-widget">Your first widget</a></h2>
@@ -376,7 +376,7 @@ They may also be useful to have buttons within eww change what is shown within y
 <p>This may be the most commonly used type of variable.
 They are useful to access any quickly retrieved value repeatedly,
 and thus are the perfect choice for showing your time, date, as well as other bits of information such as pending package updates, weather, and battery level.</p>
-<p>You can also specify an initial-value. This should prevent eww from waiting for the result of a give command during startup, thus
+<p>You can also specify an initial-value. This should prevent eww from waiting for the result of a given command during startup, thus
 making the startup time faster.</p>
 <p><strong>Listening variables (<code>deflisten</code>)</strong></p>
 <pre><code class="language-lisp">(deflisten foo :initial &quot;whatever&quot;
@@ -499,6 +499,7 @@ configuration e.g.</p>
 </code></pre>
 <p>This can be useful in many situations, for example when generating a workspace list from a JSON representation of your workspaces.
 In many cases, this can be used instead of <code>literal</code>, and should most likely be preferred in those cases.</p>
+<p>To see how to declare and use more advanced data structures, check out the <a href="/examples/data-structures/eww.yuck">data structures example</a>.</p>
 <h2 id="splitting-up-your-configuration"><a class="header" href="#splitting-up-your-configuration">Splitting up your configuration</a></h2>
 <p>As time passes, your configuration might grow larger and larger. Luckily, you can easily split up your configuration into multiple files!</p>
 <p>There are two options to achieve this:</p>
@@ -530,7 +531,12 @@ as well as within strings, inside string-interpolation blocks (<code>&quot;foo $
 <li>simple mathematical operations (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code>)</li>
 <li>comparisons (<code>==</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;=</code>)</li>
 <li>boolean operations (<code>||</code>, <code>&amp;&amp;</code>, <code>!</code>)</li>
-<li>regex match operator (<code>=~</code>)</li>
+<li>regex match operator (<code>=~</code>)
+<ul>
+<li>Rust regex style, left hand is regex, right hand is string</li>
+<li>ex: workspace.name =~ '^special:.+$'</li>
+</ul>
+</li>
 <li>elvis operator (<code>?:</code>)
 <ul>
 <li>if the left side is <code>&quot;&quot;</code> or a JSON <code>null</code>, then returns the right side,
@@ -539,10 +545,10 @@ otherwise evaluates to the left side.</li>
 </li>
 <li>Safe Access operator (<code>?.</code>) or (<code>?.[index]</code>)
 <ul>
-<li>if the left side is <code>&quot;&quot;</code> or a JSON <code>null</code>, then return <code>null</code>. Otherwise,
-attempt to index.</li>
+<li>if the left side is an empty string or a JSON <code>null</code>, then return <code>null</code>. Otherwise,
+attempt to index. Note that indexing an empty JSON string (<code>'&quot;&quot;'</code>) is an error.</li>
 <li>This can still cause an error to occur if the left hand side exists but is
-not an object.
+not an object or an array.
 (<code>Number</code> or <code>String</code>).</li>
 </ul>
 </li>
@@ -557,17 +563,29 @@ not an object.
 <ul>
 <li><code>round(number, decimal_digits)</code>: Round a number to the given amount of decimals</li>
 <li><code>sin(number)</code>, <code>cos(number)</code>, <code>tan(number)</code>, <code>cot(number)</code>: Calculate the trigonometric value of a given number in <strong>radians</strong></li>
+<li><code>min(a, b)</code>, <code>max(a, b)</code>: Get the smaller or bigger number out of two given numbers</li>
+<li><code>powi(num, n)</code>, <code>powf(num, n)</code>: Raise number <code>num</code> to power <code>n</code>. <code>powi</code> expects <code>n</code> to be of type <code>i32</code></li>
+<li><code>log(num, n)</code>: Calculate the base <code>n</code> logarithm of <code>num</code>. <code>num</code>, <code>n</code> and return type are <code>f64</code></li>
 <li><code>degtorad(number)</code>: Converts a number from degrees to radians</li>
 <li><code>radtodeg(number)</code>: Converts a number from radians to degrees</li>
 <li><code>replace(string, regex, replacement)</code>: Replace matches of a given regex in a string</li>
 <li><code>search(string, regex)</code>: Search for a given regex in a string (returns array)</li>
 <li><code>matches(string, regex)</code>: check if a given string matches a given regex (returns bool)</li>
 <li><code>captures(string, regex)</code>: Get the captures of a given regex in a string (returns array)</li>
-<li><code>strlength(value)</code>: Gets the length of the string</li>
+<li><code>strlength(value)</code>: Gets the length of the string
+<ul>
 <li><code>substring(string, start, length)</code>: Return a substring of given length starting at the given index</li>
+</ul>
+</li>
 <li><code>arraylength(value)</code>: Gets the length of the array</li>
 <li><code>objectlength(value)</code>: Gets the amount of entries in the object</li>
-<li><code>jq(value, jq_filter_string)</code>: run a <a href="https://stedolan.github.io/jq/manual/">jq</a> style command on a json value. (Uses <a href="https://crates.io/crates/jaq">jaq</a> internally).</li>
+<li><code>jq(value, jq_filter_string)</code>: run a <a href="https://jqlang.github.io/jq/manual/">jq</a> style command on a json value. (Uses <a href="https://crates.io/crates/jaq">jaq</a> internally).</li>
+<li><code>jq(value, jq_filter_string, args)</code>: Emulate command line flags for jq, see <a href="https://jqlang.github.io/jq/manual/#invoking-jq">the docs</a> on invoking jq for details. Invalid flags are silently ignored.
+Currently supported flags:
+<ul>
+<li><code>&quot;r&quot;</code>: If the result is a string, it won't be formatted as a JSON string. The equivalent jq flag is <code>--raw-output</code>.</li>
+</ul>
+</li>
 <li><code>get_env(string)</code>: Gets the specified enviroment variable</li>
 <li><code>formattime(unix_timestamp, format_str, timezone)</code>: Gets the time in a given format from UNIX timestamp.
 Check <a href="https://docs.rs/chrono/latest/chrono/format/strftime/index.html">chrono's documentation</a> for more
@@ -600,12 +618,12 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <p>These are variables that are always there, without you having to import them.</p>
 <p>The delay between all the updating variables except <code>EWW_TIME</code> is 2s, for <code>EWW_TIME</code> it is 1s.</p>
 <h3 id="eww_temps"><a class="header" href="#eww_temps"><code>EWW_TEMPS</code></a></h3>
-<p>Heat of the components in Celcius</p>
+<p>Heat of the components in degree Celsius</p>
 <h4 id="structure"><a class="header" href="#structure">Structure</a></h4>
 <pre><code>{ &lt;name&gt;: temperature }
 </code></pre>
 <h3 id="eww_ram"><a class="header" href="#eww_ram"><code>EWW_RAM</code></a></h3>
-<p>Information on ram and swap usage in kB.</p>
+<p>Information on ram and swap usage in bytes.</p>
 <h4 id="structure-1"><a class="header" href="#structure-1">Structure</a></h4>
 <pre><code>{ total_mem, free_mem, total_swap, free_swap, available_mem, used_mem, used_mem_perc }
 </code></pre>
@@ -615,7 +633,7 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <pre><code>{ &lt;mount_point&gt;: { name, total, free, used, used_perc } }
 </code></pre>
 <h3 id="eww_battery"><a class="header" href="#eww_battery"><code>EWW_BATTERY</code></a></h3>
-<p>Battery capacity in procent of the main battery</p>
+<p>Battery capacity in percent of the main battery</p>
 <h4 id="structure-3"><a class="header" href="#structure-3">Structure</a></h4>
 <pre><code>{ &lt;name&gt;: { capacity, status } }
 </code></pre>
@@ -652,7 +670,7 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <li><strong><code>active</code></strong>: <em><code>bool</code></em> If this widget can be interacted with</li>
 <li><strong><code>tooltip</code></strong>: <em><code>string</code></em> tooltip text (on hover)</li>
 <li><strong><code>visible</code></strong>: <em><code>bool</code></em> visibility of the widget</li>
-<li><strong><code>style</code></strong>: <em><code>string</code></em> inline css style applied to the widget</li>
+<li><strong><code>style</code></strong>: <em><code>string</code></em> inline scss style applied to the widget</li>
 <li><strong><code>css</code></strong>: <em><code>string</code></em> scss code applied to the widget, i.e.: <code>button {color: red;}</code></li>
 </ul>
 <h2 id="combo-box-text"><a class="header" href="#combo-box-text"><code>combo-box-text</code></a></h2>
@@ -664,7 +682,7 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <li><strong><code>onchange</code></strong>: <em><code>string</code></em> runs the code when a item was selected, replacing {} with the item as a string</li>
 </ul>
 <h2 id="expander"><a class="header" href="#expander"><code>expander</code></a></h2>
-<p>A widget that can expand and collapse, showing/hiding it's children.</p>
+<p>A widget that can expand and collapse, showing/hiding it's children. Should contain</p>
 <p><strong>Properties</strong></p>
 <ul>
 <li><strong><code>name</code></strong>: <em><code>string</code></em> name of the expander</li>
@@ -737,13 +755,13 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <li><strong><code>password</code></strong>: <em><code>bool</code></em> if the input is obscured</li>
 </ul>
 <h2 id="button"><a class="header" href="#button"><code>button</code></a></h2>
-<p>A button</p>
+<p>A button containing any widget as it's child. Events are triggered on release.</p>
 <p><strong>Properties</strong></p>
 <ul>
 <li><strong><code>timeout</code></strong>: <em><code>duration</code></em> timeout of the command. Default: &quot;200ms&quot;</li>
-<li><strong><code>onclick</code></strong>: <em><code>string</code></em> a command that get's run when the button is clicked</li>
-<li><strong><code>onmiddleclick</code></strong>: <em><code>string</code></em> a command that get's run when the button is middleclicked</li>
-<li><strong><code>onrightclick</code></strong>: <em><code>string</code></em> a command that get's run when the button is rightclicked</li>
+<li><strong><code>onclick</code></strong>: <em><code>string</code></em> command to run when the button is activated either by leftclicking or keyboard</li>
+<li><strong><code>onmiddleclick</code></strong>: <em><code>string</code></em> command to run when the button is middleclicked</li>
+<li><strong><code>onrightclick</code></strong>: <em><code>string</code></em> command to run when the button is rightclicked</li>
 </ul>
 <h2 id="image"><a class="header" href="#image"><code>image</code></a></h2>
 <p>A widget displaying an image</p>
@@ -752,6 +770,8 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <li><strong><code>path</code></strong>: <em><code>string</code></em> path to the image file</li>
 <li><strong><code>image-width</code></strong>: <em><code>int</code></em> width of the image</li>
 <li><strong><code>image-height</code></strong>: <em><code>int</code></em> height of the image</li>
+<li><strong><code>preserve-aspect-ratio</code></strong>: <em><code>bool</code></em> whether to keep the aspect ratio when resizing an image. Default: true, false doesn't work for all image types</li>
+<li><strong><code>fill-svg</code></strong>: <em><code>string</code></em> sets the color of svg images</li>
 <li><strong><code>icon</code></strong>: <em><code>string</code></em> name of a theme icon</li>
 <li><strong><code>icon-size</code></strong>: <em><code>string</code></em> size of the theme icon</li>
 </ul>
@@ -794,9 +814,9 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <li><strong><code>ondropped</code></strong>: <em><code>string</code></em> Command to execute when something is dropped on top of this element. The placeholder <code>{}</code> used in the command will be replaced with the uri to the dropped thing.</li>
 <li><strong><code>dragvalue</code></strong>: <em><code>string</code></em> URI that will be provided when dragging from this widget</li>
 <li><strong><code>dragtype</code></strong>: <em><code>string</code></em> Type of value that should be dragged from this widget. Possible values: &quot;file&quot;, &quot;text&quot;</li>
-<li><strong><code>onclick</code></strong>: <em><code>string</code></em> a command that get's run when the button is clicked</li>
-<li><strong><code>onmiddleclick</code></strong>: <em><code>string</code></em> a command that get's run when the button is middleclicked</li>
-<li><strong><code>onrightclick</code></strong>: <em><code>string</code></em> a command that get's run when the button is rightclicked</li>
+<li><strong><code>onclick</code></strong>: <em><code>string</code></em> command to run when the widget is clicked</li>
+<li><strong><code>onmiddleclick</code></strong>: <em><code>string</code></em> command to run when the widget is middleclicked</li>
+<li><strong><code>onrightclick</code></strong>: <em><code>string</code></em> command to run when the widget is rightclicked</li>
 </ul>
 <h2 id="label"><a class="header" href="#label"><code>label</code></a></h2>
 <p>A text widget giving you more control over how the text is displayed</p>
@@ -845,10 +865,12 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <li><strong><code>same-size</code></strong>: <em><code>bool</code></em> sets whether all children should be the same size</li>
 </ul>
 <h2 id="transform"><a class="header" href="#transform"><code>transform</code></a></h2>
-<p>A widget that applies transformations to its content. They are applied in the following</p>
+<p>A widget that applies transformations to its content. They are applied in the following order: rotate -&gt; translate -&gt; scale</p>
 <p><strong>Properties</strong></p>
 <ul>
 <li><strong><code>rotate</code></strong>: <em><code>float</code></em> the percentage to rotate</li>
+<li><strong><code>transform-origin-x</code></strong>: <em><code>string</code></em> x coordinate of origin of transformation (px or %)</li>
+<li><strong><code>transform-origin-y</code></strong>: <em><code>string</code></em> y coordinate of origin of transformation (px or %)</li>
 <li><strong><code>translate-x</code></strong>: <em><code>string</code></em> the amount to translate in the x direction (px or %)</li>
 <li><strong><code>translate-y</code></strong>: <em><code>string</code></em> the amount to translate in the y direction (px or %)</li>
 <li><strong><code>scale-x</code></strong>: <em><code>string</code></em> the amount to scale in the x direction (px or %)</li>
@@ -874,6 +896,9 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <li><strong><code>max</code></strong>: <em><code>float</code></em> the maximum value to show</li>
 <li><strong><code>dynamic</code></strong>: <em><code>bool</code></em> whether the y range should dynamically change based on value</li>
 <li><strong><code>line-style</code></strong>: <em><code>string</code></em> changes the look of the edges in the graph. Values: &quot;miter&quot; (default), &quot;round&quot;,</li>
+<li><strong><code>flip-x</code></strong>: <em><code>bool</code></em> whether the x axis should go from high to low</li>
+<li><strong><code>flip-y</code></strong>: <em><code>bool</code></em> whether the y axis should go from high to low</li>
+<li><strong><code>vertical</code></strong>: <em><code>bool</code></em> if set to true, the x and y axes will be exchanged</li>
 </ul>
 <h2 id="systray"><a class="header" href="#systray"><code>systray</code></a></h2>
 <p>Tray for system notifier icons</p>
@@ -919,6 +944,8 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <p>These configurations of eww are available in the <code>examples/</code> directory of the <a href="https://github.com/elkowar/eww">repo</a>.</p>
 <p>An eww bar configuration:
 <img src="https://github.com/elkowar/eww/raw/master/examples/eww-bar/eww-bar.png" alt="Example bar" /></p>
+<p>A demo on how to declare and use data structures:</p>
+<p><img src="https://github.com/elkowar/eww/raw/master/examples/data-structures/data-structures-preview.png" alt="Data structure example" /></p>
 
                     </main>
 

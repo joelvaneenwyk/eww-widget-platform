@@ -188,7 +188,12 @@ as well as within strings, inside string-interpolation blocks (<code>&quot;foo $
 <li>simple mathematical operations (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code>)</li>
 <li>comparisons (<code>==</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;=</code>)</li>
 <li>boolean operations (<code>||</code>, <code>&amp;&amp;</code>, <code>!</code>)</li>
-<li>regex match operator (<code>=~</code>)</li>
+<li>regex match operator (<code>=~</code>)
+<ul>
+<li>Rust regex style, left hand is regex, right hand is string</li>
+<li>ex: workspace.name =~ '^special:.+$'</li>
+</ul>
+</li>
 <li>elvis operator (<code>?:</code>)
 <ul>
 <li>if the left side is <code>&quot;&quot;</code> or a JSON <code>null</code>, then returns the right side,
@@ -197,10 +202,10 @@ otherwise evaluates to the left side.</li>
 </li>
 <li>Safe Access operator (<code>?.</code>) or (<code>?.[index]</code>)
 <ul>
-<li>if the left side is <code>&quot;&quot;</code> or a JSON <code>null</code>, then return <code>null</code>. Otherwise,
-attempt to index.</li>
+<li>if the left side is an empty string or a JSON <code>null</code>, then return <code>null</code>. Otherwise,
+attempt to index. Note that indexing an empty JSON string (<code>'&quot;&quot;'</code>) is an error.</li>
 <li>This can still cause an error to occur if the left hand side exists but is
-not an object.
+not an object or an array.
 (<code>Number</code> or <code>String</code>).</li>
 </ul>
 </li>
@@ -215,17 +220,29 @@ not an object.
 <ul>
 <li><code>round(number, decimal_digits)</code>: Round a number to the given amount of decimals</li>
 <li><code>sin(number)</code>, <code>cos(number)</code>, <code>tan(number)</code>, <code>cot(number)</code>: Calculate the trigonometric value of a given number in <strong>radians</strong></li>
+<li><code>min(a, b)</code>, <code>max(a, b)</code>: Get the smaller or bigger number out of two given numbers</li>
+<li><code>powi(num, n)</code>, <code>powf(num, n)</code>: Raise number <code>num</code> to power <code>n</code>. <code>powi</code> expects <code>n</code> to be of type <code>i32</code></li>
+<li><code>log(num, n)</code>: Calculate the base <code>n</code> logarithm of <code>num</code>. <code>num</code>, <code>n</code> and return type are <code>f64</code></li>
 <li><code>degtorad(number)</code>: Converts a number from degrees to radians</li>
 <li><code>radtodeg(number)</code>: Converts a number from radians to degrees</li>
 <li><code>replace(string, regex, replacement)</code>: Replace matches of a given regex in a string</li>
 <li><code>search(string, regex)</code>: Search for a given regex in a string (returns array)</li>
 <li><code>matches(string, regex)</code>: check if a given string matches a given regex (returns bool)</li>
 <li><code>captures(string, regex)</code>: Get the captures of a given regex in a string (returns array)</li>
-<li><code>strlength(value)</code>: Gets the length of the string</li>
+<li><code>strlength(value)</code>: Gets the length of the string
+<ul>
 <li><code>substring(string, start, length)</code>: Return a substring of given length starting at the given index</li>
+</ul>
+</li>
 <li><code>arraylength(value)</code>: Gets the length of the array</li>
 <li><code>objectlength(value)</code>: Gets the amount of entries in the object</li>
-<li><code>jq(value, jq_filter_string)</code>: run a <a href="https://stedolan.github.io/jq/manual/">jq</a> style command on a json value. (Uses <a href="https://crates.io/crates/jaq">jaq</a> internally).</li>
+<li><code>jq(value, jq_filter_string)</code>: run a <a href="https://jqlang.github.io/jq/manual/">jq</a> style command on a json value. (Uses <a href="https://crates.io/crates/jaq">jaq</a> internally).</li>
+<li><code>jq(value, jq_filter_string, args)</code>: Emulate command line flags for jq, see <a href="https://jqlang.github.io/jq/manual/#invoking-jq">the docs</a> on invoking jq for details. Invalid flags are silently ignored.
+Currently supported flags:
+<ul>
+<li><code>&quot;r&quot;</code>: If the result is a string, it won't be formatted as a JSON string. The equivalent jq flag is <code>--raw-output</code>.</li>
+</ul>
+</li>
 <li><code>get_env(string)</code>: Gets the specified enviroment variable</li>
 <li><code>formattime(unix_timestamp, format_str, timezone)</code>: Gets the time in a given format from UNIX timestamp.
 Check <a href="https://docs.rs/chrono/latest/chrono/format/strftime/index.html">chrono's documentation</a> for more
