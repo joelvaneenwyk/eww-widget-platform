@@ -60,7 +60,7 @@ This field can be:
 - the string `<primary>`, in which case eww tries to identify the primary display (which may fail, especially on wayland)
 - an integer, declaring the monitor index
 - the name of the monitor
-- a string containing a JSON-array of monitor matchers, such as: `'["<primary>" "HDMI-A-1" "PHL 345B1C" 0]'`. Eww will try to find a match in order, allowing you to specify fallbacks.
+- a string containing a JSON-array of monitor matchers, such as: `'["<primary>", "HDMI-A-1", "PHL 345B1C", 0]'`. Eww will try to find a match in order, allowing you to specify fallbacks.
 
 **`geometry`-properties**
 
@@ -84,12 +84,12 @@ Depending on if you are using X11 or Wayland, some additional properties exist:
 
 #### Wayland
 
-|    Property | Description                                                  |
-| ----------: | ------------------------------------------------------------ |
-|  `stacking` | Where the window should appear in the stack. Possible values: `fg`, `bg`, `overlay`, `bottom`. |
-| `exclusive` | Whether the compositor should reserve space for the window automatically. Either `true` or `false`. |
-| `focusable` | Whether the window should be able to be focused. This is necessary for any widgets that use the keyboard to work. Either `true` or `false`. |
-| `namespace` | Set the wayland layersurface namespace eww uses. Accepts a `string` value. |
+|    Property | Description                                                                                                                                                            |
+| ----------: |------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|  `stacking` | Where the window should appear in the stack. Possible values: `fg`, `bg`, `overlay`, `bottom`.                                                                         |
+| `exclusive` | Whether the compositor should reserve space for the window automatically. Either `true` or `false`.                                                                    |
+| `focusable` | Whether the window should be able to be focused. This is necessary for any widgets that use the keyboard to work. Possible values: `none`, `exclusive` and `ondemand`. |
+| `namespace` | Set the wayland layersurface namespace eww uses. Accepts a `string` value.                                                                                             |
 
 ## Your first widget
 
@@ -206,7 +206,7 @@ This may be the most commonly used type of variable.
 They are useful to access any quickly retrieved value repeatedly,
 and thus are the perfect choice for showing your time, date, as well as other bits of information such as pending package updates, weather, and battery level.
 
-You can also specify an initial-value. This should prevent eww from waiting for the result of a give command during startup, thus
+You can also specify an initial-value. This should prevent eww from waiting for the result of a given command during startup, thus
 making the startup time faster.
 
 **Listening variables (`deflisten`)**
@@ -381,6 +381,8 @@ If you want to display a list of values, you can use the `for`-Element to fill a
 
 This can be useful in many situations, for example when generating a workspace list from a JSON representation of your workspaces.
 In many cases, this can be used instead of `literal`, and should most likely be preferred in those cases.
+
+To see how to declare and use more advanced data structures, check out the [data structures example](/examples/data-structures/eww.yuck).
 
 ## Splitting up your configuration
 
