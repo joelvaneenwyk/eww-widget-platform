@@ -20,6 +20,7 @@ as well as within strings, inside string-interpolation blocks (`"foo ${ ... } ba
 ## Features
 
 Supported currently are the following features:
+
 - simple mathematical operations (`+`, `-`, `*`, `/`, `%`)
 - comparisons (`==`, `!=`, `>`, `<`, `<=`, `>=`)
 - boolean operations (`||`, `&&`, `!`)
@@ -27,7 +28,7 @@ Supported currently are the following features:
     - Rust regex style, left hand is regex, right hand is string
     - ex: workspace.name =~ '^special:.+$'
 - elvis operator (`?:`)
-    - if the left side is `""` or a JSON `null`, then returns the right side,
+  - if the left side is `""` or a JSON `null`, then returns the right side,
       otherwise evaluates to the left side.
 - Safe Access operator (`?.`) or (`?.[index]`)
     - if the left side is an empty string or a JSON `null`, then return `null`. Otherwise,
@@ -38,7 +39,7 @@ Supported currently are the following features:
 - conditionals (`condition ? 'value' : 'other value'`)
 - numbers, strings, booleans and variable references (`12`, `'hi'`, `true`, `some_variable`)
 - json access (`object.field`, `array[12]`, `object["field"]`)
-    - for this, the object/array value needs to refer to a variable that contains a valid json string.
+  - for this, the object/array value needs to refer to a variable that contains a valid json string.
 - some function calls:
     - `round(number, decimal_digits)`: Round a number to the given amount of decimals
     - `sin(number)`, `cos(number)`, `tan(number)`, `cot(number)`: Calculate the trigonometric value of a given number in **radians**

@@ -2,3 +2,9 @@
 /**/target
 /result
 /result-*
+node_modules/
+package-lock.json
+/.git/
+.clj-kondo/
+.lsp/
+vcpkg_installed/

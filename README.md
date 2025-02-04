@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD033 MD041 MD045 -->
+
 [![dependency status](https://deps.rs/repo/github/elkowar/eww/status.svg)](https://deps.rs/repo/github/elkowar/eww)
 
 # Eww

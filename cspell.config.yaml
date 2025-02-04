@@ -1,0 +1,11 @@
+version: "0.2"
+ignorePaths: []
+dictionaryDefinitions:
+  - name: eww
+    path: ./github/config/eww.dict
+    addWords: true
+dictionaries:
+  - eww
+words: []
+ignoreWords: []
+import: []
