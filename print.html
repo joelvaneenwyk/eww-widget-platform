@@ -171,7 +171,8 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="eww---widgets-for-everyone"><a class="header" href="#eww---widgets-for-everyone">Eww - Widgets for everyone!</a></h1>
+                        <h1 id="eww---widgets-for-everyone"><a class="header" href="#eww---widgets-for-everyone">Eww - Widgets for everyone</a></h1>
+<!-- markdownlint-disable MD033 -->
 <p>Eww (ElKowar's Wacky Widgets, pronounced with sufficient amounts of disgust)
 is a widget system made in <a href="https://www.rust-lang.org/">Rust</a>,
 which lets you create your own widgets similarly to how you can in AwesomeWM.
@@ -225,7 +226,7 @@ When you're on Wayland, build with:</p>
 <pre><code class="language-bash">chmod +x ./eww
 </code></pre>
 <p>Then to run it, enter:</p>
-<pre><code>./eww daemon
+<pre><code class="language-bash">./eww daemon
 ./eww open &lt;window_name&gt;
 </code></pre>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="writing-your-eww-configuration"><a class="header" href="#writing-your-eww-configuration">Writing your eww configuration</a></h1>
@@ -603,7 +604,7 @@ information about format string.</li>
 <p>Eww is styled in GTK CSS.
 You can use <code>Vanilla CSS</code> or <code>SCSS</code> to make theming even easier. The latter is compiled into CSS for you.
 If you don't know any way to style something check out the <a href="https://docs.gtk.org/gtk3/css-overview.html">GTK CSS Overview wiki</a>,
-the <a href="https://docs.gtk.org/gtk3/css-properties.html">GTK CSS Properties Overview wiki </a>,
+the <a href="https://docs.gtk.org/gtk3/css-properties.html">GTK CSS Properties Overview wiki</a>,
 or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <p>If you have <strong>NO</strong> clue about how to do CSS, check out some online guides or tutorials.</p>
 <p>SCSS is <em>very</em> close to CSS, so if you know CSS you'll have no problem learning SCSS.</p>
@@ -927,7 +928,7 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <li>Make sure the <code>eww.yuck</code> and <code>eww.(s)css</code> files are in the correct places.</li>
 <li>Sometimes, eww might fail to load your configuration as a result of a configuration error. Make sure your configuration is valid.</li>
 </ol>
-<h2 id="something-isnt-styled-correctly"><a class="header" href="#something-isnt-styled-correctly">Something isn't styled correctly!</a></h2>
+<h2 id="something-isnt-styled-correctly"><a class="header" href="#something-isnt-styled-correctly">Something isn't styled correctly</a></h2>
 <p>Check the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a> to get more insight into what styles GTK is applying to which elements.</p>
 <h2 id="general-issues"><a class="header" href="#general-issues">General issues</a></h2>
 <p>You should try the following things before opening an issue or doing more specialized troubleshooting:</p>
@@ -940,7 +941,7 @@ or use the <a href="working_with_gtk.html#gtk-debugger">GTK-Debugger</a>.</p>
 <li>Sometimes hot reloading doesn't work. In that case, you can make use of <code>eww reload</code> manually.</li>
 </ul>
 <p>Remember, if your issue isn't listed here, <a href="https://github.com/elkowar/eww/issues">open an issue on the GitHub repo</a>.</p>
-<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h2 id="example-configurations"><a class="header" href="#example-configurations">Example Configurations</a></h2>
+<div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="example-configurations"><a class="header" href="#example-configurations">Example Configurations</a></h1>
 <p>These configurations of eww are available in the <code>examples/</code> directory of the <a href="https://github.com/elkowar/eww">repo</a>.</p>
 <p>An eww bar configuration:
 <img src="https://github.com/elkowar/eww/raw/master/examples/eww-bar/eww-bar.png" alt="Example bar" /></p>
