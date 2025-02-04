@@ -7,3 +7,4 @@ package-lock.json
 /.git/
 .clj-kondo/
 .lsp/
+vcpkg_installed/

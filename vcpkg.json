@@ -1,0 +1,6 @@
+{
+    "name": "eww-widget-platform",
+    "version": "1.0.0",
+    "dependencies": ["glib", "pango", "gdk-pixbuf", "atk", "cairo"],
+    "builtin-baseline": "bea476a80218a581bcb5318595849520217c825e"
+}
