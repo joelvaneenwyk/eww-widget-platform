@@ -2660,8 +2660,7 @@ checksum = "1de1d4f81173b03af4c0cbed3c898f6bff5b870e4a7f5d6f4057d62a7a4b686e"
 [[package]]
 name = "simple-signal"
 version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53f7da44adcc42667d57483bd93f81295f27d66897804b757573b61b6f13288b"
+source = "git+https://github.com/joelvaneenwyk/rust-simple-signal#d069ab0f64df6e73bfbd51c33981a592da27d860"
 dependencies = [
  "lazy_static",
  "libc",
