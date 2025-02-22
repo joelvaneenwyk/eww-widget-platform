@@ -43,4 +43,4 @@ tasks:
       #
       #   - https://github.com/elkowar/eww/issues/1062#issuecomment-2036488934
       #
-      - cmd: cargo build --release --no-default-features --features=wayland
+      - cmd: cargo build --locked --release --no-default-features --features=wayland
